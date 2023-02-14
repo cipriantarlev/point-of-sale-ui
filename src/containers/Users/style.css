@@ -1,0 +1,16 @@
+.MuiDataGrid-columnHeader {
+  text-align: center;
+}
+
+.no-underline:hover {
+  text-decoration: none;
+}
+
+.no-underline {
+  text-decoration: none;
+  color: black;
+}
+
+.Button  {
+  background-color: red;
+}
