@@ -1,39 +1,23 @@
 import React, { useState } from 'react';
-import { connect } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 
-import { useStyles } from './style';
 import './login.css';
 
-import { handleLogin } from '../../actions/authAction';
+import { login } from '../../slices/authSlice';
 
-const mapStateToProps = (state) => {
-  return {
-    isPeding: state.requestLogin.isPeding,
-    response: state.requestLogin.response,
-    loginError: state.requestLogin.error,
-  }
-}
+const Login = () => {
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onHandleLogin: (username, password) => dispatch(handleLogin(username, password))
-  }
-}
+  const loginError = useSelector((state) => state.authReducer.error);
 
-const Login = (props) => {
-  const classes = useStyles();
-
-  const {
-    onHandleLogin,
-    loginError
-  } = props;
+  const dispatch = useDispatch();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -49,7 +33,7 @@ const Login = (props) => {
 
   const handleSignin = () => {
     if (username && password) {
-      onHandleLogin(username, password)
+      dispatch(login({ username, password }));
       setCredentialsError(false);
       setPassword('');
       setUsername('');
@@ -67,15 +51,20 @@ const Login = (props) => {
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
+      <Box sx={{
+        marginTop: 8,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}>
+        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
           Sign in
         </Typography>
         {loginError ? <h4 style={{ color: 'red', marginTop: 15, marginBottom: -5 }}>Incorrect Username or password</h4> : null}
-        <form className={classes.form} noValidate>
+        <form sx={{ mt: 1 }} noValidate>
           <TextField
             variant="outlined"
             margin="normal"
@@ -110,15 +99,15 @@ const Login = (props) => {
             fullWidth
             variant="contained"
             color="primary"
-            className={classes.submit}
+            sx={{ mt: 3, mb: 2 }}
             onClick={handleSignin}
           >
             Sign In
           </Button>
         </form>
-      </div>
+      </Box>
     </Container>
   );
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Login);
+export default Login;

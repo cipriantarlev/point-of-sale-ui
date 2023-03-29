@@ -1,6 +1,7 @@
 import React from "react";
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
+import { createTheme, ThemeProvider } from "@mui/material";
 import {
   BrowserRouter as Router,
   Navigate,
@@ -16,43 +17,40 @@ import NotFound from "../NotFound/NotFound";
 import Copyright from '../../common/Copyright';
 import Forbidden from '../Forbidden/Forbidden';
 
-const mapStateToProps = (state) => {
-  return {
-    loggedIn: state.requestLogin.user,
+const theme = createTheme({
+  palette: {
+    secondary: {
+      main: '#b2102f',
+      light: '#ff1744',
+      dark: '#ff4569'
+    }
   }
-}
+});
 
-const App = ({ loggedIn }) => {
+const App = () => {
+  const loggedIn = useSelector((state) => state.authReducer.user);
   return (
-    <Router>
-      <Routes>
-        <Route exact path="/" >
-          {loggedIn ? <Home /> : <Navigate to="/login" />}
-        </Route>
-        <Route exact path="/users" >
-          {loggedIn ? <Users /> : <Navigate to="/login" />}
-        </Route>
-        <Route path="/users/:id" >
-          {loggedIn ? <User /> : <Navigate to="/login" />}
-        </Route>
-        <Route path="/login">
-          {!loggedIn ? <Login /> : <Navigate to="/" />}
-        </Route>
-        <Route exact path="/forbidden" >
-          {loggedIn ? <Forbidden /> : <Navigate to="/login" />}
-        </Route>
-        <Route component={NotFound} />
-      </Routes>
-      {(loggedIn) ? <Box style={{
-        position: "fixed",
-        bottom: "20px",
-        left: 0,
-        right: 0
-      }}>
-        <Copyright />
-      </Box> : null}
-    </Router>
+    <ThemeProvider theme={theme}>
+      <Router>
+        <Routes>
+          <Route exact path="/" element={loggedIn ? <Home /> : <Navigate to="/login" />} />
+          <Route exact path="/users" element={loggedIn ? <Users /> : <Navigate to="/login" />} />
+          <Route path="/users/:id" element={loggedIn ? <User /> : <Navigate to="/login" />} />
+          <Route path="/login" element={!loggedIn ? <Login /> : <Navigate to="/" />} />
+          <Route exact path="/forbidden" element={loggedIn ? <Forbidden /> : <Navigate to="/" />} />
+          <Route path='*' exact={true} element={<NotFound />} />
+        </Routes>
+        {(loggedIn) ? <Box style={{
+          position: "fixed",
+          bottom: "20px",
+          left: 0,
+          right: 0
+        }}>
+          <Copyright />
+        </Box> : null}
+      </Router>
+    </ThemeProvider>
   )
 }
 
-export default connect(mapStateToProps)(App);
+export default App;
