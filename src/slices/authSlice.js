@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import { ROOT_CONTEXT_PATH } from '../constants';
 
 const initialState = {
-    isPeding: false,
+    isPending: false,
     response: null,
     error: null,
     user: Cookies.get('user') ? true : false
@@ -38,26 +38,26 @@ const authSlice = createSlice({
     reducers: {
         logout(state, action) {
             Cookies.remove('user')
-            state.isPeding = false;
+            state.isPending = false;
             state.user = null;
             state.response = null;
             state.error = null;
         },
     },
-    extraReducers: {
-        [login.pending]: (state, action) => {
-            state.isPeding = true;
+    extraReducers: (builder) => {
+        builder.addCase(login.pending, (state, action) => {
+            state.isPending = true;
             state.error = null;
-        },
-        [login.fulfilled]: (state, action) => {
+        })
+        .addCase(login.fulfilled, (state, action) => {
             state.response = action.payload;
-            state.isPeding = false;
+            state.isPending = false;
             state.user = Cookies.get('user');
-        },
-        [login.rejected]: (state, action) => {
+        })
+        .addCase(login.rejected, (state, action) => {
             state.error = action.error.message;
-            state.isPeding = false;
-        },
+            state.isPending = false;
+        })
     },
 });
 

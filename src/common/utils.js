@@ -24,13 +24,13 @@ export const dataApi = (method, data) => {
   }
 }
 
-export const checkStatusCode = (data, type, dispatch) => {
+export const checkStatusCode = (data) => {
   if (data[0]?.statusCode !== undefined && data[0]?.statusCode !== 200) {
     throw data;
   } else if (data !== undefined && data.statusCode === 403) {
     throw data;
   } else {
-    return dispatch({ type: type, payload: data })
+    return data;
   }
 }
 
@@ -68,4 +68,23 @@ export const checkIfInitialRetailPriceIsNull = (initialProduct) => {
     return initialProduct.retailPrice;
   else
     return '0.00';
+}
+
+export const createAsyncRequest = async (urlToFetch, header) => {
+  try {
+    const response = await fetch(urlToFetch, header);
+    const data = await response.json();
+    return await checkStatusCode(data);
+  } catch (error) {
+    throw Error(error);
+  }
+}
+
+export const createAsyncDeleteRequest = async (urlToFetch, header) => {
+  try {
+    const response = await fetch(urlToFetch, header);
+    return response.status;
+  } catch (error) {
+    throw Error(error);
+  }
 }

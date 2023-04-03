@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { connect } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router';
 import Form from 'react-bootstrap/Form'
 import Col from 'react-bootstrap/Col'
@@ -13,7 +13,7 @@ import {
   createUser,
   updateUser,
   fetchUsers
-} from '../../actions/userAction';
+} from '../../slices/userSlice';
 
 import DisplayAlert from '../../common/DisplayAlert';
 import ProgressLoading from '../../common/ProgressLoading';
@@ -23,38 +23,16 @@ import {
   preventSubmitIfInvalidInput
 } from '../../common/utils';
 
-const mapStateToProps = (state) => {
-  return {
-    isPending: state.fetchUsers.isPending,
-    initialUser: state.fetchUsers.user,
-    error: state.fetchUsers.error,
-    roles: state.fetchUsers.roles,
-  }
-}
+import { DEFAULT_UUID_ID } from '../../constants';
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onFetchUser: (id) => dispatch(fetchUser(id)),
-    onFetchRoles: () => dispatch(fetchRoles()),
-    onCreateUser: (user) => dispatch(createUser(user)),
-    onUpdateUser: (user) => dispatch(updateUser(user)),
-    onFetchUsers: () => dispatch(fetchUsers()),
-  }
-}
+const User = () => {
 
-const User = (props) => {
+  const dispatch = useDispatch();
 
-  const {
-    initialUser,
-    roles,
-    error,
-    isPending,
-    onFetchUser,
-    onFetchRoles,
-    onCreateUser,
-    onUpdateUser,
-    onFetchUsers,
-  } = props;
+  const isPending = useSelector((state) => state.userReducer.isPending);
+  const initialUser = useSelector((state) => state.userReducer.user);
+  const error = useSelector((state) => state.userReducer.error);
+  const roles = useSelector((state) => state.userReducer.roles);
 
   const USERNAME_HELP_BLOCK = "usernameHelpBlock";
   const PASSWORD_HELP_BLOCK = "passwordHelpBlock";
@@ -73,25 +51,25 @@ const User = (props) => {
 
   const salt = bcrypt.genSaltSync(10);
 
-  useEffect(() => {
-    onFetchRoles();
-  }, [onFetchRoles]);
-
-  useEffect(() => {
-    if (id !== "0") {
-      onFetchUser(id);
-    }
-  }, [id, onFetchUser])
-
-
   const initializeRolesValue = () => {
     let tempRoles = initialUser.roles !== undefined ? initialUser.roles.map(role => role.id) : [];
     setSelectedRoles(tempRoles);
   }
 
   useEffect(() => {
+    dispatch(fetchRoles())
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(fetchRoles())
+    if (id !== DEFAULT_UUID_ID) {
+      dispatch(fetchUser(id));
+    }
+  }, [id, dispatch])
+
+  useEffect(() => {
     initializeRolesValue();
-    if (id !== "0") {
+    if (id !== DEFAULT_UUID_ID) {
       setUser(initialUser)
     } else {
       setSelectedRoles([]);
@@ -104,16 +82,15 @@ const User = (props) => {
 
   useEffect(() => {
     setOpenAlert(false)
-    // eslint-disable-next-line
-  }, [])
+  }, [setOpenAlert])
 
   const onClickCancel = () => {
     const answer = window.confirm('Are you sure you want to cancel?');
-    return answer === true ? navigate.push("/users") : null;
+    return answer === true ? navigate("/users") : null;
   }
 
-  const onSelectValue = (event) => {
-    setSelectedRoles([].slice.call(event.target.selectedOptions).map(item => Number(item.value)));
+  const onSelectRole = (event) => {
+    setSelectedRoles([].slice.call(event.target.selectedOptions).map(item => item.value));
     setUserRoler();
   }
 
@@ -162,15 +139,15 @@ const User = (props) => {
   const onSubmitUser = (event) => {
     if (isUserReadyToBeSubmitted()) {
       const hashPassword = bcrypt.hashSync(user.password, salt);
-      setUser(Object.assign(user, user, { password: hashPassword }));
+      setUser(Object.assign(user, user, { password: hashPassword, id: DEFAULT_UUID_ID }));
       setUserRoler();
-      if (id !== "0") {
-        onUpdateUser(user);
+      if (id !== DEFAULT_UUID_ID) {
+        dispatch(updateUser(user));
       } else {
-        onCreateUser(user);
+        dispatch(createUser(user));
       }
-      onFetchUsers();
-      navigate.push("/users");
+      dispatch(fetchUsers());
+      navigate("/users");
     } else {
       setInvalidPassword(true);
       setConfirmPassword('');
@@ -250,7 +227,7 @@ const User = (props) => {
             htmlSize={2}
             multiple
             value={selectedRoles}
-            onChange={onSelectValue}
+            onChange={onSelectRole}
           >
             {roles.map(role => (
               <option key={role.id} value={role.id}>{role.role}</option>
@@ -258,7 +235,7 @@ const User = (props) => {
 
           </Form.Control>
         </Form.Group>
-        <div>
+        <div className="mt3">
           <Button
             className="ml3 w4"
             variant="primary"
@@ -285,11 +262,11 @@ const User = (props) => {
           open={openAlert}
           setOpen={setOpenAlert}
         /> : null}
-      {(initialUser.status === 403 || roles.status === 403) ? navigate.push("/forbidden") 
+      {(initialUser.status === 403 || roles.status === 403) ? navigate("/forbidden") 
       : renderUserForm()}
     </div>
   );
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(User);
+export default User;
 
